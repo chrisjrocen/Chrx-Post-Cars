@@ -1,12 +1,6 @@
 <?php
 
 /**
- * The plugin bootstrap file
- *
- * This file is read by WordPress to generate the plugin information in the plugin
- * admin area. This file also includes all of the dependencies used by the plugin,
- * registers the activation and deactivation functions, and defines a function
- * that starts the plugin.
  *
  * @link              http://ocenchris.com
  * @since             1.0.0
@@ -14,8 +8,8 @@
  *
  * @wordpress-plugin
  * Plugin Name:       CHRX POST CARS
- * Plugin URI:        http://ocenchris.com/chrx-post-cars-uri/
- * Description:       This is a short description of what the plugin does. It's displayed in the WordPress admin area.
+ * Plugin URI:        http://ocenchris.com/
+ * Description:       A plugin with a custom post type called Cars. The Custom post type will be storing data about cars
  * Version:           1.0.0
  * Author:            Ocen Chris
  * Author URI:        http://ocenchris.com/
@@ -27,19 +21,6 @@
 
 // If this file is access directly, abort!!!
 defined( 'ABSPATH' ) or die( 'Unauthorized Access' );
-
-// function techiepress_get_send_data() {
-
-//     // Read the JSON file 
-// // $json = file_get_contents('chrx-post-cars/cars.json');
-//     $json_file = plugin_dir_path(__FILE__).'cars.json';
-
-//     $json_data =file_get_contents($json_file);
-
-//     return "<p>" . $json_data . "</p>";
-
-// }   
-
 
 function chrx_cars_custom_meta_box()
 {
