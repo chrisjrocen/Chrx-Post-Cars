@@ -25,58 +25,116 @@
  * Domain Path:       /languages
  */
 
-// If this file is called directly, abort.
-if ( ! defined( 'WPINC' ) ) {
-	die;
+// If this file is access directly, abort!!!
+defined( 'ABSPATH' ) or die( 'Unauthorized Access' );
+
+// function techiepress_get_send_data() {
+
+//     // Read the JSON file 
+// // $json = file_get_contents('chrx-post-cars/cars.json');
+//     $json_file = plugin_dir_path(__FILE__).'cars.json';
+
+//     $json_data =file_get_contents($json_file);
+
+//     return "<p>" . $json_data . "</p>";
+
+// }   
+
+
+function chrx_cars_custom_meta_box()
+{
+    
+
+wp_nonce_field(basename(__FILE__), "meta-box-nonce");
+
+    ?>
+        <div>
+            <label for="meta-box-car-model">Car Model</label>
+            <input name="meta-box-car-model" type="text" value="<?php echo get_post_meta($object->ID, "meta-box-car-model", true); ?>">
+
+            <br>
+
+            <label for="meta-box-car-color">Color</label>
+            <input name="meta-box-car-color" type="text" value="<?php echo get_post_meta($object->ID, "meta-box-car-color", true); ?>">
+            
+            <br>
+        </div>
+    <?php  
 }
 
-/**
- * Currently plugin version.
- * Start at version 1.0.0 and use SemVer - https://semver.org
- * Rename this for your plugin and update it as you release new versions.
- */
-define( 'PLUGIN_NAME_VERSION', '1.0.0' );
 
-/**
- * The code that runs during plugin activation.
- * This action is documented in includes/class-chrx-post-cars-activator.php
- */
-function activate_chrx_post_cars() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/class-chrx-post-cars-activator.php';
-	Chrx_Post_Cars_Activator::activate();
-}
 
-/**
- * The code that runs during plugin deactivation.
- * This action is documented in includes/class-chrx-post-cars-deactivator.php
- */
-function deactivate_chrx_post_cars() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/class-chrx-post-cars-deactivator.php';
-	Chrx_Post_Cars_Deactivator::deactivate();
-}
+function chrx_save_custom_meta_box($post_id, $post, $update)
+{
+    if (!isset($_POST["meta-box-nonce"]) || !wp_verify_nonce($_POST["meta-box-nonce"], basename(__FILE__)))
+        return $post_id;
 
-register_activation_hook( __FILE__, 'activate_chrx_post_cars' );
-register_deactivation_hook( __FILE__, 'deactivate_chrx_post_cars' );
+    if(!current_user_can("edit_post", $post_id))
+        return $post_id;
 
-/**
- * The core plugin class that is used to define internationalization,
- * admin-specific hooks, and public-facing site hooks.
- */
-require plugin_dir_path( __FILE__ ) . 'includes/class-chrx-post-cars.php';
+    if(defined("DOING_AUTOSAVE") && DOING_AUTOSAVE)
+        return $post_id;
 
-/**
- * Begins execution of the plugin.
- *
- * Since everything within the plugin is registered via hooks,
- * then kicking off the plugin from this point in the file does
- * not affect the page life cycle.
- *
- * @since    1.0.0
- */
-function run_chrx_post_cars() {
+    $slug = "post";
+    if($slug != $post->post_type)
+        return $post_id;
 
-	$plugin = new Chrx_Post_Cars();
-	$plugin->run();
+    $meta_box_car_model_value = "";
+    $meta_box_car_color_value = "";
+
+    if(isset($_POST["meta-box-car-model"]))
+    {
+        $meta_box_text_value = $_POST["meta-box-car-model"];
+    }   
+    update_post_meta($post_id, "meta-box-car-model", $meta_box_car_model_value);
+
+    if(isset($_POST["meta-box-car-color"]))
+    {
+        $meta_box_car_color_value = $_POST["meta-box-car-color"];
+    }   
+    update_post_meta($post_id, "meta-box-car-color", $meta_box_car_color_value);
 
 }
-run_chrx_post_cars();
+
+add_action("save_post", "chrx_save_custom_meta_box", 10, 3);
+
+
+
+
+
+
+
+function chrx_add_custom_meta_box()
+{
+    add_meta_box("chrx_cars_custom_ID", //unique ID
+                "Car",                          //title
+                "chrx_cars_custom_meta_box", //callback
+                "post", //screeen
+                "side", //position
+                "high", //priority
+                null//callback_args
+            );
+}
+
+add_action("add_meta_boxes", "chrx_add_custom_meta_box");
+
+
+
+
+/**
+ * Register a custom menu page to view the information queried.
+ */
+function chrx_cars_custom_menu_page() {
+    add_menu_page(
+        __( 'Chrx Post Cars', 'chrx-post-cars' ),
+        'Post Cars',
+        'manage_options',
+        'chrx-post-cars.php',
+        'chrx_get_send_data',
+        'dashicons-admin-post',
+        16
+    );
+}
+
+add_action( 'admin_menu', 'chrx_cars_custom_menu_page' );
+
