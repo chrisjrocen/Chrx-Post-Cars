@@ -52,7 +52,7 @@ function chrx_custom_car() {
 add_action( 'init', 'chrx_custom_car' );
 
 
-//adding custom meta box for color
+//adding custom meta box for color and model
 add_action( 'add_meta_boxes', 'chrx_save_custom_color' );
 function chrx_save_custom_color() {
     add_meta_box( 
