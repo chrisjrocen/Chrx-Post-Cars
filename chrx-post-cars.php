@@ -118,4 +118,3 @@ function chrx_cars_custom_menu_page() {
 }
 
 add_action( 'admin_menu', 'chrx_cars_custom_menu_page' );
-
