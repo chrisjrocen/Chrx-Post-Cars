@@ -22,99 +22,81 @@
 // If this file is access directly, abort!!!
 defined( 'ABSPATH' ) or die( 'Unauthorized Access' );
 
-function chrx_cars_custom_meta_box()
-{
-    
-
-wp_nonce_field(basename(__FILE__), "meta-box-nonce");
-
-    ?>
-        <div>
-            <label for="meta-box-car-model">Car Model</label>
-            <input name="meta-box-car-model" type="text" value="<?php echo get_post_meta($object->ID, "meta-box-car-model", true); ?>">
-
-            <br>
-
-            <label for="meta-box-car-color">Color</label>
-            <input name="meta-box-car-color" type="text" value="<?php echo get_post_meta($object->ID, "meta-box-car-color", true); ?>">
-            
-            <br>
-        </div>
-    <?php  
+//function to create a post type and add it to the admin menu
+function chrx_custom_car() {
+  $labels = array(
+    'name'               => _x( 'Cars', 'post type general name' ),
+    'singular_name'      => _x( 'Car', 'post type singular name' ),
+    'add_new'            => _x( 'Add New', 'car' ),
+    'add_new_item'       => __( 'Add New Car' ),
+    'edit_item'          => __( 'Edit Car' ),
+    'new_item'           => __( 'New Car' ),
+    'all_items'          => __( 'All Car' ),
+    'view_item'          => __( 'View Car' ),
+    'search_items'       => __( 'Search Cars' ),
+    'not_found'          => __( 'No cars found' ),
+    'not_found_in_trash' => __( 'No cars found in the Trash' ),
+   // 'parent_item_colon'  => ’,
+    'menu_name'          => 'Post Cars' //how it appears on the admin menu
+  );
+  $args = array(
+    'labels'        => $labels,
+    'description'   => 'Holds data about cars',
+    'public'        => true,
+    'menu_position' => 15,
+    'supports'      => array( 'title', 'editor', 'thumbnail', 'excerpt', 'comments' ),
+    'has_archive'   => true,
+  );
+  register_post_type( 'car', $args ); 
 }
+add_action( 'init', 'chrx_custom_car' );
 
 
-
-function chrx_save_custom_meta_box($post_id, $post, $update)
-{
-    if (!isset($_POST["meta-box-nonce"]) || !wp_verify_nonce($_POST["meta-box-nonce"], basename(__FILE__)))
-        return $post_id;
-
-    if(!current_user_can("edit_post", $post_id))
-        return $post_id;
-
-    if(defined("DOING_AUTOSAVE") && DOING_AUTOSAVE)
-        return $post_id;
-
-    $slug = "post";
-    if($slug != $post->post_type)
-        return $post_id;
-
-    $meta_box_car_model_value = "";
-    $meta_box_car_color_value = "";
-
-    if(isset($_POST["meta-box-car-model"]))
-    {
-        $meta_box_text_value = $_POST["meta-box-car-model"];
-    }   
-    update_post_meta($post_id, "meta-box-car-model", $meta_box_car_model_value);
-
-    if(isset($_POST["meta-box-car-color"]))
-    {
-        $meta_box_car_color_value = $_POST["meta-box-car-color"];
-    }   
-    update_post_meta($post_id, "meta-box-car-color", $meta_box_car_color_value);
-
-}
-
-add_action("save_post", "chrx_save_custom_meta_box", 10, 3);
-
-
-
-
-
-
-
-function chrx_add_custom_meta_box()
-{
-    add_meta_box("chrx_cars_custom_ID", //unique ID
-                "Car",                          //title
-                "chrx_cars_custom_meta_box", //callback
-                "post", //screeen
-                "side", //position
-                "high", //priority
-                null//callback_args
-            );
-}
-
-add_action("add_meta_boxes", "chrx_add_custom_meta_box");
-
-
-
-
-/**
- * Register a custom menu page to view the information queried.
- */
-function chrx_cars_custom_menu_page() {
-    add_menu_page(
-        __( 'Chrx Post Cars', 'chrx-post-cars' ),
-        'Post Cars',
-        'manage_options',
-        'chrx-post-cars.php',
-        'chrx_get_send_data',
-        'dashicons-admin-post',
-        16
+//adding custom meta box for color
+add_action( 'add_meta_boxes', 'chrx_save_custom_color' );
+function chrx_save_custom_color() {
+    add_meta_box( 
+        'chrx_save_custom_color',
+        __( 'Car Color', 'chrx-post-cars' ),
+        'chrx_custom_car_content',
+        'car',
+        'side',
+        'high'
     );
 }
 
-add_action( 'admin_menu', 'chrx_cars_custom_menu_page' );
+function chrx_custom_car_content( $post ) {
+  wp_nonce_field( plugin_basename( __FILE__ ), 'chrx_custom_car_content_nonce' );
+  echo '<label for="car_color">Car Color</label>';
+  echo '<input type="text" id="car_color" name="car_color" placeholder="Enter car color" />';
+  echo '<label for="car_model">Car Model</label>';
+  echo '<input type="text" id="car_model" name="car_model" placeholder="Enter car Model" />';
+}
+
+
+
+
+add_action( 'save_post', 'chrx_custom_car_save' );
+function chrx_custom_car_save( $post_id ) {
+
+  if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) 
+  return;
+
+  if ( !wp_verify_nonce( $_POST['chrx_custom_car_content_nonce'], plugin_basename( __FILE__ ) ) )
+  return;
+
+  if ( 'page' == $_POST['post_type'] ) {
+    if ( !current_user_can( 'edit_page', $post_id ) )
+    return;
+  } else {
+    if ( !current_user_can( 'edit_post', $post_id ) )
+    return;
+  }
+  $car_color = $_POST['car_color'];
+  $car_model = $_POST['car_model'];
+  update_post_meta( $post_id, 'car_color', $car_color );
+  update_post_meta( $post_id, 'car_model', $car_model );
+
+}
+
+?>
